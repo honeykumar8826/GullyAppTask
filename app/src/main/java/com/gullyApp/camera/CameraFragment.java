@@ -66,6 +66,7 @@ public class CameraFragment extends CameraVideoFragment {
     ImageView flashLight,switchCamera,openGallery,moveNextActivity;
     View view;
     public static TextView remainSecond;
+    private  static boolean isVideoSave= false;
     /** 0 forback camera
      * 1 for front camera
      * Initlity default camera is front camera */
@@ -195,6 +196,7 @@ public class CameraFragment extends CameraVideoFragment {
                 } else {
 
                     startRecordingVideo();
+                    isVideoSave = true;
                     // i have changed the image
                     mRecordVideo.setImageResource(R.drawable.ic_camera_push_to_record);
                     //Receive out put file here
@@ -301,5 +303,9 @@ public class CameraFragment extends CameraVideoFragment {
         mediaFile = new File(mediaStorageDir.getPath() + File.separator
                 + "VID_" + timeStamp + ".mp4");
         return mediaFile;
+    }
+    public static Boolean isVideoRecorded()
+    {
+        return isVideoSave;
     }
 }

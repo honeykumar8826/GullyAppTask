@@ -1,29 +1,25 @@
 package com.gullyApp.activity;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
-import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
-import android.support.annotation.ColorRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -31,22 +27,20 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.gullyApp.R;
 import com.gullyApp.adapter.ImageLoadAdapter;
 import com.gullyApp.adapter.VideoRecyclerViewAdapter;
+import com.gullyApp.camera.CameraFragment;
 import com.gullyApp.camera.VideoRecordActivity;
 import com.gullyApp.fragment.CommentFragment;
 import com.gullyApp.fragment.SharePostFragment;
@@ -60,12 +54,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
+import butterknife.BindViews;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -78,20 +75,30 @@ import static android.widget.LinearLayout.VERTICAL;
 public class HomeActivity extends AppCompatActivity {
     public static final String API_KEY = "9e5ef71432c64196a16273c85cfb94c1";
     private static final String TAG = "HomeActivity";
-    private final String[] permissionList = {Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA};
-    @BindView(R.id.recyclerViewFeed)
+    private final String[] permissionList = {Manifest.permission.READ_EXTERNAL_STORAGE};
     ExoPlayerRecyclerView recyclerViewFeed;
+    @BindView(R.id.camera_open)
+    ImageView cameraOpen;
+    @BindView(R.id.like_active)
+    ImageView likeActive;
+    @BindView(R.id.feed_reuse)
+    ImageView feedReuse;
+    @BindView(R.id.feed_option)
+    ImageView feedOption;
+    @BindView(R.id.tv_friend)
+    TextView friend;
+    @BindView(R.id.tv_popular)
+    TextView popular;
+    @BindView(R.id.tv_collab)
+    TextView collab;
+    @BindView(R.id.background_image)
+    ImageView backgroundImg;
     private BottomNavigationView bottomNavigationView;
-    private VideoView mVideo;
     private List<ImageModal> imageModalList;
     private RecyclerView recyclerViewNews;
     private Context context;
-    private ImageView cameraOpen, likeActive, feedReuse, feedOption;
     private FragmentManager fragmentManager;
     private Animation animShow, animHide;
-    private int currentVideoPosition;
-    private MediaPlayer mediaPlayer;
-    private TextView friend, popular, collab;
     private Boolean isFriend = true;
     private Boolean isPopular = false;
     private Boolean isCollab = false;
@@ -99,24 +106,18 @@ public class HomeActivity extends AppCompatActivity {
     private VideoRecyclerViewAdapter mAdapter;
     private boolean firstTime = true;
 
-
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-        // to check the permission call this method
-        //checkPermission();
-//        set the id for layout
         setInItId();
-        // butterknife use for id's
         ButterKnife.bind(this);
+        // permission code for external storage
+        externalStorgaePermission();
+        // initialize the fragment manager
+        fragmentManager = getSupportFragmentManager();
         // get the all video file data
         showVideoByApiData();
-        // prepareVideoList();
-        // play Video in background like tiktok
-//        play video in background
-        //setVideoInBackground();
-        //
         //list initialization
         imageModalList = new ArrayList<>();
         //intialize the context
@@ -130,41 +131,6 @@ public class HomeActivity extends AppCompatActivity {
         } else {
             Toast.makeText(context, "internet disconnected", Toast.LENGTH_SHORT).show();
         }
-        // listener for like button to open the list of comment
-        likeActive.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // add fragement
-                addLikeRecordFragment();
-            }
-        });
-        // listener for like button to open the list of share
-        feedReuse.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // add fragement
-                addReuseRecordFragment();
-            }
-
-            private void addReuseRecordFragment() {
-                SharePostFragment sharePostFragment = new SharePostFragment();
-                // overridePendingTransition(R.anim.bottom_to_top,0);
-//        commentFragment.setStyle(DialogFragment.STYLE_NO_FRAME, 0);
-                sharePostFragment.show(fragmentManager, "Load data");
-            }
-        });
-        // open dialog for share and download the video
-        feedOption.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-                sharingIntent.setType("text/plain");
-                startActivity(sharingIntent);
-            }
-        });
-        // intialize the fragment manager
-        fragmentManager = getSupportFragmentManager();
-//        listener on a bottom navigatoin
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
@@ -190,57 +156,85 @@ public class HomeActivity extends AppCompatActivity {
                 }
             }
         });
-        //open activity to make video
-        cameraOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent openVideoPage = new Intent(HomeActivity.this, VideoRecordActivity.class);
-                startActivity(openVideoPage);
-            }
-        });
-        //listner for top list like friend,popular,collab
-        friend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (isFriend) {
-                    friend.setTextColor(Color.WHITE);
-                    popular.setTextColor(Color.GRAY);
-                    collab.setTextColor(Color.GRAY);
-                    Toast.makeText(context, "friend Button is click", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        popular.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isPopular = true;
-                if (isPopular) {
-                    popular.setTextColor(Color.WHITE);
-                    friend.setTextColor(Color.GRAY);
-                    collab.setTextColor(Color.GRAY);
-                    Toast.makeText(context, "popular Button is click", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        collab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isCollab = true;
-                if (isCollab) {
-                    collab.setTextColor(Color.WHITE);
-                    popular.setTextColor(Color.GRAY);
-                    friend.setTextColor(Color.GRAY);
-                    Toast.makeText(context, "collab Button is click", Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        });
 
     }
 
+    private void externalStorgaePermission() {
+        // permission to check the required permission is given or not
+//        int count = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!hasPermissions(HomeActivity.this, permissionList)) {
+//            Log.i(TAG, "checkPermission: " + count++);
+                ActivityCompat.requestPermissions(HomeActivity.this, permissionList, 10);
+            } else {
+                Toast.makeText(this, " Permission  granted ", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "permission automatically granted", Toast.LENGTH_SHORT).show();
+        }
+
+
+    }
+
+    // give true if the permission is granted
+    private boolean hasPermissions(Context context, String... permissions) {
+        int count = 0;
+        if (context != null && permissions != null) {
+            Log.i(TAG, "hasPermissions: " + permissions.length);
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    count++;
+                    Log.i(TAG, "hasPermissions: " + count);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    // get the callback of the permission is come in the below method
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 10) {
+            Log.i(TAG, "onRequestPermissionsResult: " + permissions);
+            if (grantResults[0] == -1) {
+
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
+                    showMessageOkCancel("Storage permission is required to Video location",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                    intent.setData(uri);
+                                    startActivity(intent);
+                                    finish();
+                                }
+                            });
+                    // Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Storage Permission not granted", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(this, " Permissions  granted ", Toast.LENGTH_SHORT).show();
+
+            }
+        }
+    }
+    // if permission is deny then this will open the popup to send into the setting of permission
+
+    private void showMessageOkCancel(String permissionDetail, DialogInterface.OnClickListener onClickListener) {
+
+        new AlertDialog.Builder(this).setMessage(permissionDetail)
+                .setPositiveButton("Ok", onClickListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }
+
     private void playVideoInBackground() {
-        //showVideoByApiData();
         recyclerViewFeed.setVideoInfoList(videoInfoList);
         mAdapter = new VideoRecyclerViewAdapter(videoInfoList);
         recyclerViewFeed.setLayoutManager(new LinearLayoutManager(this, VERTICAL, false));
@@ -252,18 +246,45 @@ public class HomeActivity extends AppCompatActivity {
         pagerSnapHelper.attachToRecyclerView(recyclerViewFeed);
 
         if (firstTime) {
-            new Handler(Looper.getMainLooper()).post(new Runnable() {
-                @Override
-                public void run() {
-                    recyclerViewFeed.playVideo();
-                }
-            });
+            new Handler(Looper.getMainLooper()).post(() -> recyclerViewFeed.playVideo());
             firstTime = false;
         }
         recyclerViewFeed.scrollToPosition(0);
     }
 
     private void showVideoByApiData() {
+        //
+        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/AndroidWave");
+        Log.i(TAG, "showVideoByApiData:1 " + folder);
+        File[] listOfFiles = folder.listFiles();
+        if (listOfFiles != null) {
+            addVideoInList(listOfFiles);
+//            Log.i(TAG, "showVideoByApiData: inside if part");
+//            Log.i(TAG, "setVideoInBackground: "+listOfFiles);
+//            for (int i = 0; i < listOfFiles.length; i++) {
+//                VideoInfo videoInfo = new VideoInfo();
+//                if (listOfFiles[i].isFile()) {
+//
+//                    videoInfo.setUrl(listOfFiles[i].getPath());
+//                    videoInfo.setCoverUrl("https://www.gstatic.com/webp/gallery/4.webp");
+//                    videoInfoList.add(videoInfo);
+//                    //Log.i(TAG, "setVideoInBackground:" + listOfFiles[i].getPath());
+//                    // System.out.println("File " + listOfFiles[i].getName());
+//                } else if (listOfFiles[i].isDirectory()) {
+//                    Log.i(TAG, "setVideoInBackground:else if " + listOfFiles[i].getName());
+//                    // System.out.println("Directory " + listOfFiles[i].getName());
+//                }
+//            }
+            playVideoInBackground();
+        } else {
+            backgroundImg.setVisibility(View.VISIBLE);
+            // videoInfoList.clear();
+            // playVideoInBackground();
+            Log.i(TAG, "showVideoByApiData: inside else part");
+            // Toast.makeText(context, "Make Video ", Toast.LENGTH_SHORT).show();
+        }
+
+  /*      //
         Retrofit retrofit = new Retrofit.Builder().baseUrl(NetworkClient.BASE_URL2)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -309,7 +330,7 @@ public class HomeActivity extends AppCompatActivity {
 
                 // swipeRefreshLayout.setRefreshing(false);
             }
-        });
+        });*/
     }
 
 
@@ -326,42 +347,15 @@ public class HomeActivity extends AppCompatActivity {
 
     }
 
-    private void setVideoInBackground() {
-        Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.car_video);
-        mVideo.setVideoURI(uri);
-        mVideo.start();
-        mVideo.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mediaPlayer = mp;
-                mediaPlayer.setLooping(true);
-                mediaPlayer.setVolume(0, 0);
-                if (currentVideoPosition > 0) {
-                    mediaPlayer.seekTo(0);
-                    mediaPlayer.start();
-                }
-            }
-        });
-
-    }
-
     private void setInItId() {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
-        // mVideo = findViewById(R.id.video_play);
         recyclerViewNews = findViewById(R.id.recycles_profile);
-        cameraOpen = findViewById(R.id.camera_open);
-        likeActive = findViewById(R.id.like_active);
-        feedReuse = findViewById(R.id.feed_reuse);
-        feedOption = findViewById(R.id.feed_option);
-        friend = findViewById(R.id.tv_friend);
-        popular = findViewById(R.id.tv_popular);
-        collab = findViewById(R.id.tv_collab);
+        recyclerViewFeed = findViewById(R.id.recyclerViewFeed);
     }
 
     // return the true if network is active
     private boolean isNetworkConnected() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
         return cm.getActiveNetworkInfo() != null;
     }
 
@@ -371,12 +365,11 @@ public class HomeActivity extends AppCompatActivity {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         NetworkClient api = retrofit.create(NetworkClient.class);
-
         Call<ResponseBody> call = api.getNews("in", API_KEY);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                Log.i(TAG, "onResponse: " + response.body());
+                // Log.i(TAG, "onResponse: " + response.body());
                 try {
                     String result = response.body().string();
                     JSONObject jsonObject = new JSONObject(result);
@@ -408,7 +401,7 @@ public class HomeActivity extends AppCompatActivity {
                         Log.i(TAG, "else part: ");
                     }
 
-                    Log.i(TAG, "onResponse:1 " + status + "" + totalItem);
+                    // Log.i(TAG, "onResponse:1 " + status + "" + totalItem);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
@@ -429,122 +422,6 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    // permission to check the required permission is given or not
-    public void checkPermission() {
-//        int count = 0;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (!hasPermissions(HomeActivity.this, permissionList)) {
-//            Log.i(TAG, "checkPermission: " + count++);
-                ActivityCompat.requestPermissions(HomeActivity.this, permissionList, 10);
-            } else {
-                Toast.makeText(this, " Permission  granted ", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(this, "permission automatically granted", Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
-    // give true if the permission is granted
-    private boolean hasPermissions(Context context, String... permissions) {
-        int count = 0;
-        if (context != null && permissions != null) {
-            Log.i(TAG, "hasPermissions: " + permissions.length);
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    count++;
-                    Log.i(TAG, "hasPermissions: " + count);
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    // get the callback of the permission is come in the below method
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == 10) {
-            Log.i(TAG, "onRequestPermissionsResult: " + permissions);
-            if (grantResults[0] == -1) {
-
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
-                    showMessageOkCancel("Location permission is required to access location",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                    intent.setData(uri);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
-                    // Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "MicroPhone or Record Audio Permission not granted", Toast.LENGTH_SHORT).show();
-                }
-            } else if (grantResults[1] == -1) {
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
-                    showMessageOkCancel("Storage permission is required to access contact",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                    intent.setData(uri);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
-                    // Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "Storage Permission not granted", Toast.LENGTH_SHORT).show();
-                }
-            } else if (grantResults[2] == -1) {
-                if (!ActivityCompat.shouldShowRequestPermissionRationale(HomeActivity.this, Manifest.permission.CAMERA)) {
-                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
-                    showMessageOkCancel("Camera permission is required to access camera",
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    Uri uri = Uri.fromParts("package", getPackageName(), null);
-                                    intent.setData(uri);
-                                    startActivity(intent);
-                                    finish();
-                                }
-                            });
-                    //  Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(this, "Camera Permission not granted ", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(this, " Permissions  granted ", Toast.LENGTH_SHORT).show();
-
-            }
-        } else {
-            // Toast.makeText(this, "Permission granted with Code=" + grantResults[0], Toast.LENGTH_SHORT).show();
-        }
-    }
-    // if permission is deny then this will open the popup to send into the setting of permission
-
-    private void showMessageOkCancel(String permissionDetail, DialogInterface.OnClickListener onClickListener) {
-
-        new AlertDialog.Builder(this).setMessage(permissionDetail)
-                .setPositiveButton("Ok", onClickListener)
-                .setNegativeButton("Cancel", null)
-                .create()
-                .show();
-    }
-
-
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -556,14 +433,19 @@ public class HomeActivity extends AppCompatActivity {
                 recyclerViewFeed.onPausePlayer();
             }
         });
-
-        // currentVideoPosition = mVideo.getCurrentPosition();
-        // mVideo.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        videoInfoList.clear();
+        File folder = new File(Environment.getExternalStorageDirectory().toString() + "/AndroidWave");
+        Log.i(TAG, "showVideoByApiData:1 " + folder);
+        File[] listOfFiles = folder.listFiles();
+        if (listOfFiles != null) {
+            addVideoInList(listOfFiles);
+            mAdapter.notifyDataSetChanged();
+        }
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
@@ -571,8 +453,28 @@ public class HomeActivity extends AppCompatActivity {
                 recyclerViewFeed.onRestartPlayer();
             }
         });
+    }
 
-        //mVideo.start();
+    private void addVideoInList(File[] listOfFiles) {
+        /*File folder = new File(Environment.getExternalStorageDirectory().toString() + "/AndroidWave");
+        Log.i(TAG, "showVideoByApiData:1 "+folder);
+        File[] listOfFiles = folder.listFiles();*/
+               /* Log.i(TAG, "showVideoByApiData: inside if part");
+                Log.i(TAG, "setVideoInBackground: "+listOfFiles);*/
+        for (int i = 0; i < listOfFiles.length; i++) {
+            VideoInfo videoInfo = new VideoInfo();
+            if (listOfFiles[i].isFile()) {
+
+                videoInfo.setUrl(listOfFiles[i].getPath());
+                videoInfo.setCoverUrl("https://www.gstatic.com/webp/gallery/4.webp");
+                videoInfoList.add(videoInfo);
+                //Log.i(TAG, "setVideoInBackground:" + listOfFiles[i].getPath());
+                // System.out.println("File " + listOfFiles[i].getName());
+            } else if (listOfFiles[i].isDirectory()) {
+                Log.i(TAG, "setVideoInBackground:else if " + listOfFiles[i].getName());
+                // System.out.println("Directory " + listOfFiles[i].getName());
+            }
+        }
     }
 
     @Override
@@ -580,7 +482,67 @@ public class HomeActivity extends AppCompatActivity {
         if (recyclerViewFeed != null)
             recyclerViewFeed.onRelease();
         super.onDestroy();
-        // mediaPlayer.release();
+    }
+
+    private void addReuseRecordFragment() {
+        SharePostFragment sharePostFragment = new SharePostFragment();
+        // overridePendingTransition(R.anim.bottom_to_top,0);
+//        commentFragment.setStyle(DialogFragment.STYLE_NO_FRAME, 0);
+        sharePostFragment.show(fragmentManager, "Load data");
+    }
+
+    @OnClick({R.id.camera_open, R.id.like_active, R.id.feed_option, R.id.feed_reuse, R.id.tv_collab
+            , R.id.tv_popular, R.id.tv_friend})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.tv_friend:
+                if (isFriend) {
+                    friend.setTextColor(Color.WHITE);
+                    popular.setTextColor(Color.GRAY);
+                    collab.setTextColor(Color.GRAY);
+                    Toast.makeText(context, "friend Button is click", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.tv_popular:
+                isPopular = true;
+                if (isPopular) {
+                    popular.setTextColor(Color.WHITE);
+                    friend.setTextColor(Color.GRAY);
+                    collab.setTextColor(Color.GRAY);
+                    Toast.makeText(context, "popular Button is click", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.tv_collab:
+                isCollab = true;
+                if (isCollab) {
+                    collab.setTextColor(Color.WHITE);
+                    popular.setTextColor(Color.GRAY);
+                    friend.setTextColor(Color.GRAY);
+                    Toast.makeText(context, "collab Button is click", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case R.id.camera_open:
+                Intent openVideoPage = new Intent(HomeActivity.this, VideoRecordActivity.class);
+                startActivity(openVideoPage);
+                break;
+            case R.id.like_active:
+                // add fragement
+                addLikeRecordFragment();
+                break;
+            case R.id.feed_reuse:
+                // add fragement
+                addReuseRecordFragment();
+                break;
+            case R.id.feed_option:
+                Intent sharingIntent = new Intent(Intent.ACTION_SEND);
+                sharingIntent.setType("text/plain");
+                startActivity(sharingIntent);
+                break;
+            default:
+                Toast.makeText(HomeActivity.this, "wrong selection", Toast.LENGTH_SHORT).show();
+                break;
+
+        }
     }
 }
 

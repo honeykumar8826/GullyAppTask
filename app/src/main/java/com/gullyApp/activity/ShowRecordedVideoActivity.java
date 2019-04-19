@@ -34,13 +34,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class ShowRecordedVideoActivity extends AppCompatActivity {
-    private VideoView mVideo;
-    private MediaPlayer mediaPlayer;
-    private int currentVideoPosition;
-    private String mOutputFilePath,videoData ;
-    private ImageView playVideo;
     private static final String TAG = "ShowRecordedVideoActivi";
-    private static final String VIDEO_DIRECTORY_NAME = "HTask";
+    private VideoView mVideo;
+    private String  videoData;
+    private ImageView playVideo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +47,8 @@ public class ShowRecordedVideoActivity extends AppCompatActivity {
         setInItId();
         // get the value from the intent
         Intent intent = getIntent();
-         videoData = intent.getStringExtra("videoUri");
-        Log.i(TAG, "onCreate intnet value"+videoData);
+        videoData = intent.getStringExtra("videoUri");
+        Log.i(TAG, "onCreate intnet value" + videoData);
 //         video in  a player
 
         try {
@@ -76,7 +73,7 @@ public class ShowRecordedVideoActivity extends AppCompatActivity {
     }
 
     private void setVideoInBackground() throws IOException {
-       // setMediaForRecordVideo();
+        // setMediaForRecordVideo();
         Uri uri = Uri.parse(videoData);
         mVideo.setVideoURI(uri);
         mVideo.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -87,77 +84,5 @@ public class ShowRecordedVideoActivity extends AppCompatActivity {
         });
 
     }
-/*    private void setMediaForRecordVideo() throws IOException {
-        mOutputFilePath = parseVideo(mOutputFilePath);
-        // Set media controller
-        mVideo.setMediaController(new MediaController(this));
-        mVideo.requestFocus();
-        mVideo.setVideoPath(mOutputFilePath);
-        mVideo.seekTo(100);
-        mVideo.setOnCompletionListener(mp -> {
-            // Reset player
-            mVideo.setVisibility(View.GONE);
-//            mTextureView.setVisibility(View.VISIBLE);
-            playVideo.setVisibility(View.GONE);
-           // mRecordVideo.setImageResource(R.drawable.ic_record);
-        });
-    }*/
-/*    private String parseVideo(String mFilePath) throws IOException {
-        DataSource channel = new FileDataSourceImpl(mFilePath);
-        IsoFile isoFile = new IsoFile(channel);
-        List<TrackBox> trackBoxes = isoFile.getMovieBox().getBoxes(TrackBox.class);
-        boolean isError = false;
-        for (TrackBox trackBox : trackBoxes) {
-            TimeToSampleBox.Entry firstEntry = trackBox.getMediaBox().getMediaInformationBox().getSampleTableBox().getTimeToSampleBox().getEntries().get(0);
-            // Detect if first sample is a problem and fix it in isoFile
-            // This is a hack. The audio deltas are 1024 for my files, and video deltas about 3000
-            // 10000 seems sufficient since for 30 fps the normal delta is about 3000
-            if (firstEntry.getDelta() > 10000) {
-                isError = true;
-                firstEntry.setDelta(3000);
-            }
-        }
-        File file = getOutputMediaFile();
-        String filePath = file.getAbsolutePath();
-        if (isError) {
-            Movie movie = new Movie();
-            for (TrackBox trackBox : trackBoxes) {
-                movie.addTrack(new Mp4TrackImpl(channel.toString() + "[" + trackBox.getTrackHeaderBox().getTrackId() + "]", trackBox));
-            }
-            movie.setMatrix(isoFile.getMovieBox().getMovieHeaderBox().getMatrix());
-            Container out = new DefaultMp4Builder().build(movie);
 
-            //delete file first!
-            FileChannel fc = new RandomAccessFile(filePath, "rw").getChannel();
-            out.writeContainer(fc);
-            fc.close();
-            Log.d(TAG, "Finished correcting raw video");
-            return filePath;
-        }
-        return mFilePath;
-    }*/
-    /**
-     * Create directory and return file
-     * returning video file
-     */
-/*    private File getOutputMediaFile() {
-        // External sdcard file location
-        File mediaStorageDir = new File(Environment.getExternalStorageDirectory(),
-                VIDEO_DIRECTORY_NAME);
-        // Create storage directory if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.d(TAG, "Oops! Failed create "
-                        + VIDEO_DIRECTORY_NAME + " directory");
-                return null;
-            }
-        }
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss",
-                Locale.getDefault()).format(new Date());
-        File mediaFile;
-
-        mediaFile = new File(mediaStorageDir.getPath() + File.separator
-                + "VID_" + timeStamp + ".mp4");
-        return mediaFile;
-    }*/
 }

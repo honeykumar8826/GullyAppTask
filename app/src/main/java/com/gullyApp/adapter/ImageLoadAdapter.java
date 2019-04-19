@@ -15,6 +15,8 @@ import com.gullyApp.modal.ImageModal;
 
 import java.util.List;
 
+import butterknife.BindView;
+
 public class ImageLoadAdapter extends RecyclerView.Adapter<ImageLoadAdapter.ImageViewHolder> {
     private Context context;
     private List<ImageModal> imageModalList;

@@ -106,6 +106,7 @@ public class VideoRecyclerViewAdapter extends RecyclerView.Adapter<BaseViewHolde
             Glide.with(itemView.getContext())
                     .load(videoInfo.getCoverUrl()).apply(new RequestOptions().optionalCenterCrop())
                     .into(mCover);
+
         }
     }
 

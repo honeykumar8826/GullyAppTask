@@ -366,7 +366,6 @@ public class ExoPlayerRecyclerView extends RecyclerView {
 
             @Override
             public void onSeekProcessed() {
-
             }
         });
     }
@@ -401,7 +400,6 @@ public class ExoPlayerRecyclerView extends RecyclerView {
             player.release();
             player = null;
         }
-
         rowParent = null;
     }
 
