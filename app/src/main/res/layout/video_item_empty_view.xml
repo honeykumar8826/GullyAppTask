@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/linearLayoutView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     android:background="@color/white"
+    android:gravity="center"
     android:orientation="vertical"
     android:padding="@dimen/activity_horizontal_margin">
 
     <ImageView
-        android:id="@+id/imageViewEmpty"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:layout_gravity="center"
-        android:src="@drawable/ic_rabbit"
-     />
+        android:contentDescription="@string/todo"
+        android:src="@drawable/ic_rabbit" />
 
     <TextView
         android:id="@+id/tv_message"
@@ -27,7 +25,6 @@
         android:textColor="#161616" />
 
     <TextView
-        android:id="@+id/txtRetry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -44,7 +41,6 @@
         android:background="@color/colorPrimary"
         android:text="@string/retry"
         android:textColor="@color/white"
-        android:textSize="20sp"
-      />
+        android:textSize="20sp" />
 
 </LinearLayout>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.gullyApp">
+    package="com.videoMaker">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -10,17 +10,22 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name="com.videoMaker.application.CustomApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/videocamera"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/videocamera"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.ShowRecordedVideoActivity"></activity>
-        <activity android:name=".playVideo.PlayVideoActivity" />
-        <activity android:name=".camera.VideoRecordActivity" />
-        <activity android:name=".activity.RecordVideoActivity" />
-        <activity android:name=".activity.HomeActivity">
+        <activity
+            android:name="com.videoMaker.activity.ShowRecordedVideoActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.videoMaker.camera.VideoRecordActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.videoMaker.activity.HomeActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -28,7 +33,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
     </application>
 
 </manifest>

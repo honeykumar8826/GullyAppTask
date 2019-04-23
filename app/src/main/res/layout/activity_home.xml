@@ -6,20 +6,20 @@
     android:layout_height="match_parent"
     tools:context=".activity.HomeActivity">
 
-    <com.gullyApp.playVideo.ui.ExoPlayerRecyclerView
+    <com.videoMaker.playVideo.ui.ExoPlayerRecyclerView
         android:id="@+id/recyclerViewFeed"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#dedede"
-        android:dividerHeight="8dp" />
-   <!-- <VideoView
-        android:id="@+id/video_play"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_navigation"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true" />-->
+        android:dividerHeight="@dimen/divider_height" />
+    <!-- <VideoView
+         android:id="@+id/video_play"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:layout_above="@+id/bottom_navigation"
+         android:layout_alignParentStart="true"
+         android:layout_alignParentTop="true"
+         android:layout_alignParentEnd="true" />-->
     <ImageView
         android:id="@+id/background_image"
         android:layout_width="match_parent"
@@ -27,42 +27,62 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
+        android:background="@color/white_color"
+        android:contentDescription="@string/todo"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_no_video"
         android:visibility="gone"
-        android:src="@drawable/videonotavail"/>
-   <LinearLayout
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:weightSum="3"
-       android:layout_marginStart="@dimen/spacing_large"
-       android:layout_marginEnd="@dimen/spacing_large"
-       android:layout_marginTop="@dimen/spacing_large"
-       android:background="@drawable/shape_top_list_item"
-       android:orientation="horizontal">
-       <TextView
-           android:id="@+id/tv_friend"
-           android:layout_width="0dp"
-           android:layout_height="40dp"
-           android:layout_weight="1"
-           android:text="FRIENDS"
-           android:textColor="@color/white_color"
-           android:gravity="center"/>
-       <TextView
-           android:id="@+id/tv_popular"
-           android:layout_width="0dp"
-           android:layout_height="40dp"
-           android:layout_weight="1"
-           android:text="POPULAR"
-           android:textColor="@color/grey_60"
-           android:gravity="center"/>
-       <TextView
-           android:id="@+id/tv_collab"
-           android:layout_width="0dp"
-           android:layout_height="40dp"
-           android:layout_weight="1"
-           android:text="COLLAB"
-           android:textColor="@color/grey_60"
-           android:gravity="center"/>
-   </LinearLayout>
+        tools:visibility="visible" />
+
+    <ImageView
+        android:id="@+id/permission_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:contentDescription="@string/todo"
+        android:scaleType="fitXY"
+        android:src="@drawable/permissionimg"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginTop="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:background="@drawable/shape_top_list_item"
+        android:orientation="horizontal"
+        android:weightSum="3">
+
+        <TextView
+            android:id="@+id/tv_friend"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/friends"
+            android:textColor="@color/white_color" />
+
+        <TextView
+            android:id="@+id/tv_popular"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/popular"
+            android:textColor="@drawable/tabitem_selection_color" />
+
+        <TextView
+            android:id="@+id/tv_collab"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="@string/collab"
+            android:textColor="@drawable/tabitem_selection_color" />
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -74,6 +94,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:contentDescription="TODO"
             android:src="@drawable/ic_feed_like_active" />
 
         <TextView
@@ -127,11 +148,14 @@
 
         <ImageView
             android:id="@+id/camera_open"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/size_camera_open"
+            android:layout_height="@dimen/size_camera_open"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_margin="@dimen/spacing_large"
+            android:layout_marginStart="@dimen/spacing_16"
+            android:layout_marginBottom="@dimen/spacing_16"
+            android:background="@drawable/shape_open_camera"
+            android:padding="@dimen/spacing_12"
             android:src="@drawable/ic_feed_add_comment" />
 
         <android.support.v7.widget.RecyclerView
@@ -139,7 +163,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/spacing_large"
-            android:layout_toRightOf="@+id/camera_open"
+            android:layout_toEndOf="@+id/camera_open"
             android:scrollbars="vertical" />
     </RelativeLayout>
 
@@ -150,10 +174,8 @@
         android:layout_alignParentBottom="true"
         android:layout_gravity="bottom"
         android:layout_marginBottom="-8dp"
-        android:background="@color/gray_3"
-        android:focusable="true"
         app:itemBackground="@drawable/menu_item_bg"
-        app:itemHorizontalTranslationEnabled="false"
+        app:itemHorizontalTranslationEnabled="true"
         app:menu="@menu/bottom_navigation" />
 
 </RelativeLayout>

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white">
@@ -11,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"
-        android:background="@android:color/black"
+        android:background="@android:color/transparent"
         android:gravity="center"
         android:scaleType="center"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -24,7 +23,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_above="@id/title"
-            android:background="@android:color/white"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/todo"
             android:scaleType="centerCrop"
             android:src="@drawable/cover" />
 
