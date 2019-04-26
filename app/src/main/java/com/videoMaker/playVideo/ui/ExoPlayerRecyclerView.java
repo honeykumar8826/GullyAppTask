@@ -59,47 +59,21 @@ public class ExoPlayerRecyclerView extends RecyclerView {
     private ImageView mCoverImage;
     private ProgressBar mProgressBar;
     private Context appContext;
-
-
-    /*
-     * the position of playing video
-     */
     private int playPosition = -1;
 
     private boolean addedVideo = false;
     private View rowParent;
-
-    /*
-     * {@inheritDoc}
-     *
-     * @param context
-     */
     public ExoPlayerRecyclerView(Context context) {
         super(context);
         Log.i(TAG, "ExoPlayerRecyclerView: 1");
         initialize(context);
     }
-
-    /*
-     * {@inheritDoc}
-     *
-     * @param context
-     * @param attrs
-     */
     public ExoPlayerRecyclerView(Context context,
                                  AttributeSet attrs) {
         super(context, attrs);
         Log.i(TAG, "ExoPlayerRecyclerView: 2");
         initialize(context);
     }
-
-    /*
-     * {@inheritDoc}
-     *
-     * @param context
-     * @param attrs
-     * @param defStyleAttr
-     */
     public ExoPlayerRecyclerView(Context context,
                                  AttributeSet attrs,
                                  int defStyleAttr) {
@@ -110,7 +84,6 @@ public class ExoPlayerRecyclerView extends RecyclerView {
 
     public void setVideoInfoList(List<VideoInfo> videoInfoList) {
         this.videoInfoList = videoInfoList;
-
     }
 
 
@@ -124,13 +97,11 @@ public class ExoPlayerRecyclerView extends RecyclerView {
         if (parent == null) {
             return;
         }
-
         int index = parent.indexOfChild(videoView);
         if (index >= 0) {
             parent.removeViewAt(index);
             addedVideo = false;
         }
-
     }
 
     //play the video in the row

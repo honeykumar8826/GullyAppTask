@@ -146,8 +146,12 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
             showVideoByApiData();
         } else {
             backgroundImg.setVisibility(View.VISIBLE);
+            // set adapter with blank list
             showVideoByApiData();
+            // videoInfoList.clear();
+            // playVideoInBackground();
             Log.i(TAG, "showVideoByApiData: inside else part");
+            // Toast.makeText(context, "Make Video ", Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -256,7 +260,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
                     }
                 }
                 //
-                // Toast.makeText(this, " Permissions  granted ", Toast.LENGTH_SHORT).show();
+               // Toast.makeText(this, " Permissions  granted ", Toast.LENGTH_SHORT).show();
 
             }
         }
@@ -307,6 +311,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
 
     private void setInItId() {
         bottomNavigationView = findViewById(R.id.bottom_navigation);
+        /*recyclerViewNews = findViewById(R.id.recycles_profile);*/
         recyclerViewFeed = findViewById(R.id.recyclerViewFeed);
         permissionImg = findViewById(R.id.permission_image);
     }
@@ -347,6 +352,7 @@ public class HomeActivity extends AppCompatActivity implements BottomNavigationV
 //                                Log.i(TAG, "values inside the for loop: " + authorName + "title" + title + "imgUrl" + imgUrl);
                                     imageModalList.add(imageModal);
                                 }
+
                                 ImageLoadAdapter imageLoadAdapter = new ImageLoadAdapter(HomeActivity.this, imageModalList);
                                 recyclerViewNews.setAdapter(imageLoadAdapter);
                                 // recyclerViewNews.startAnimation(animShow);

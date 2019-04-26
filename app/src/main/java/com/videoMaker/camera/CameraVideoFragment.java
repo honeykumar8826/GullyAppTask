@@ -3,6 +3,7 @@ package com.videoMaker.camera;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
@@ -20,6 +21,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -33,19 +35,17 @@ import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.Surface;
+import android.view.SurfaceView;
 import android.view.TextureView;
 import android.view.View;
 import android.widget.Toast;
-
 import com.videoMaker.R;
-import com.videoMaker.activity.HomeActivity;
 import com.videoMaker.camera.ui.base.BaseFragment;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -68,75 +68,36 @@ public abstract class CameraVideoFragment extends BaseFragment {
     private static final SparseIntArray INVERSE_ORIENTATIONS = new SparseIntArray();
     private static final SparseIntArray DEFAULT_ORIENTATIONS = new SparseIntArray();
     private static final String VIDEO_DIRECTORY_NAME = "RealmeVideo";
-
+    private final String[] permissionList = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA
+    };
     static {
         INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
         INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 90);
         INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 180);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270);
-    }
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270); }
 
     static {
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_90, 0);
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_0, 90);
         DEFAULT_ORIENTATIONS.append(Surface.ROTATION_270, 180);
-        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_180, 270);
-    }
+        DEFAULT_ORIENTATIONS.append(Surface.ROTATION_180, 270); }
 
     public CountDownTimer waitTimer;
-    /**
-     * Whether the app is recording video now
-     */
     public boolean mIsRecordingVideo;
     private File mCurrentFile;
-    /**
-     * An {@link AutoFitTextureView} for camera preview.
-     */
-   /* private AutoFitTextureView mTextureView;*/
     @BindView(R.id.mTextureView)
     AutoFitTextureView mTextureView;
-    /**
-     * A reference to the opened {@link CameraDevice}.
-     */
     private CameraDevice mCameraDevice;
-    /**
-     * A reference to the current {@link CameraCaptureSession} for
-     * preview.
-     */
     private CameraCaptureSession mPreviewSession;
-    /**
-     * The {@link Size} of camera preview.
-     */
     private Size mPreviewSize;
-
-    /**
-     * The {@link Size} of video recording.
-     */
     private Size mVideoSize;
-
-    /**
-     * MediaRecorder
-     */
     private MediaRecorder mMediaRecorder;
-    /**
-     * An additional thread for running tasks that shouldn't block the UI.
-     */
     private HandlerThread mBackgroundThread;
-    /**
-     * A {@link Handler} for running tasks in the background.
-     */
     private Handler mBackgroundHandler;
-    /**
-     * A {@link Semaphore} to prevent the app from exiting before closing the camera.
-     */
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
     private Integer mSensorOrientation;
     private CaptureRequest.Builder mPreviewBuilder;
-    /**
-     * {@link CameraDevice.StateCallback} is called when {@link CameraDevice} changes its status.
-     */
     private CameraDevice.StateCallback mStateCallback = new CameraDevice.StateCallback() {
-
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             mCameraDevice = cameraDevice;
@@ -166,10 +127,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
         }
 
     };
-    /**
-     * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
-     * {@link TextureView}.
-     */
     private TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
 
@@ -195,14 +152,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
         }
 
     };
-
-    /**
-     * In this sample, we choose a video size with 3x4 for  aspect ratio. for more perfectness 720 as well Also, we don't use sizes
-     * larger than 1080p, since MediaRecorder cannot handle such a high-resolution video.
-     *
-     * @param choices The list of available sizes
-     * @return The video size 1080p,720px
-     */
     private static Size chooseVideoSize(Size[] choices) {
         for (Size size : choices) {
             if (1920 == size.getWidth() && 1080 == size.getHeight()) {
@@ -217,19 +166,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
         Log.e(TAG, "Couldn't find any suitable video size");
         return choices[choices.length - 1];
     }
-
-
-    /*
-     * Given {@code choices} of {@code Size}s supported by a camera, chooses the smallest one whose
-     * width and height are at least as large as the respective requested values, and whose aspect
-     * ratio matches with the specified value.
-     *
-     * @param choices     The list of sizes that the camera supports for the intended output class
-     * @param width       The minimum desired width
-     * @param height      The minimum desired height
-     * @param aspectRatio The aspect ratio
-     * @return The optimal {@code Size}, or an arbitrary one if none were big enough
-     */
     private static Size chooseOptimalSize(Size[] choices, int width, int height, Size aspectRatio) {
         // Collect the supported resolutions that are at least as big as the preview Surface
         List<Size> bigEnough = new ArrayList<>();
@@ -255,7 +191,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-       /* mTextureView = view.findViewById(getTextureResource());*/
 
     }
 
@@ -263,6 +198,15 @@ public abstract class CameraVideoFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         startBackgroundThread();
+  /*      if(externalStorgaePermission())
+        {
+            Log.i(TAG, "onResume: "+externalStorgaePermission()+"external Storage permission");
+            if (mTextureView.isAvailable()) {
+                openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+            } else {
+                mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+            }
+        }*/
         requestPermission();
     }
 
@@ -285,10 +229,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
-
-    /*
-     * Stops the background thread and its {@link Handler}.
-     */
     private void stopBackgroundThread() {
         mBackgroundThread.quitSafely();
         try {
@@ -335,7 +275,7 @@ public abstract class CameraVideoFragment extends BaseFragment {
                 .check();
     }
 
-    /**
+    /*
      * Showing Alert Dialog with Settings option in case of deny any permission
      */
     private void showSettingsDialog() {
@@ -358,12 +298,120 @@ public abstract class CameraVideoFragment extends BaseFragment {
         startActivityForResult(intent, 101);
     }
 
+    //permission code
+/*    private boolean externalStorgaePermission() {
+        // permission to check the required permission is given or not
+//        int count = 0;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!hasPermissions(getActivity(), permissionList)) {
+//            Log.i(TAG, "checkPermission: " + count++);
+                ActivityCompat.requestPermissions(getActivity(), permissionList, 10);
+
+            } else {
+                return true;
+                // Toast.makeText(this, " Permission  granted ", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getActivity(), "permission automatically granted", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return true;
+    }*/
+
+    // give true if the permission is granted
+   /* private boolean hasPermissions(Context context, String... permissions) {
+        int count = 0;
+        if (context != null && permissions != null) {
+            Log.i(TAG, "hasPermissions: " + permissions.length);
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    count++;
+                    Log.i(TAG, "hasPermissions: " + count);
+                    return false;
+                }
+            }
+        }
+        return true;
+    }*/
+    // get the callback of the permission is come in the below method
+
+ /*   @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 10) {
+            // Log.i(TAG, "onRequestPermissionsResult: " + permissions);
+            if (grantResults[0] == -1) {
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
+                    showMessageOkCancel("Storage permission is required to Video ",
+                            (dialog, which) -> {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                                getActivity().finish();
+                            });
+                    // Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), "Storage Permission not granted", Toast.LENGTH_SHORT).show();
+                }
+            } else if (grantResults[1] == -1) {
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.RECORD_AUDIO)) {
+                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
+                    showMessageOkCancel("Record Audio permission is required t",
+                            (dialog, which) -> {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                                getActivity().finish();
+                            });
+                    // Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), "Record Audio Permission not granted", Toast.LENGTH_SHORT).show();
+                }
+            } else if (grantResults[2] == -1) {
+                if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), Manifest.permission.CAMERA)) {
+                    Log.i(TAG, "shouldShowRequestPermissionRationale:");
+                    showMessageOkCancel("Camera permission is required to access camera",
+                            (dialog, which) -> {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                Uri uri = Uri.fromParts("package", getActivity().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                                getActivity().finish();
+                            });
+                    //  Toast.makeText(this, "shouldShowRequestPermissionRationale", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getActivity(), "Camera Permission not granted ", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getActivity(), " Permissions  granted ", Toast.LENGTH_SHORT).show();
+
+            }
+        }
+    }*/
+    // if permission is deny then this will open the popup to send into the setting of permission
+
+/*    private void showMessageOkCancel(String permissionDetail, DialogInterface.OnClickListener onClickListener) {
+
+        new android.app.AlertDialog.Builder(getActivity()).setMessage(permissionDetail)
+                .setPositiveButton("Ok", onClickListener)
+                .setNegativeButton("Cancel", null)
+                .create()
+                .show();
+    }*/
+
+
+    //
     /*
      * Tries to open a {@link CameraDevice}. The result is listened by `mStateCallback`.
      */
     private void openCamera(int width, int height) {
         final Activity activity = getActivity();
-        if (null == activity || activity.isFinishing()) {
+        if (activity == null || activity.isFinishing()) {
             return;
         }
         CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
@@ -399,6 +447,7 @@ public abstract class CameraVideoFragment extends BaseFragment {
             if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 requestPermission();
+                //externalStorgaePermission();
                 return;
             }
             manager.openCamera(cameraId, mStateCallback, null);
@@ -437,7 +486,7 @@ public abstract class CameraVideoFragment extends BaseFragment {
         return mediaFile;
     }
 
-    /**
+    /*
      * close camera and release object
      */
     private void closeCamera() {
@@ -459,11 +508,11 @@ public abstract class CameraVideoFragment extends BaseFragment {
         }
     }
 
-    /**
+    /*
      * Start the camera preview.
      */
     private void startPreview() {
-        if (null == mCameraDevice || !mTextureView.isAvailable() || null == mPreviewSize) {
+        if ( mCameraDevice == null || !mTextureView.isAvailable() || null == mPreviewSize) {
             return;
         }
         try {
@@ -493,7 +542,7 @@ public abstract class CameraVideoFragment extends BaseFragment {
         }
     }
 
-    /**
+    /*
      * Update the camera preview. {@link #startPreview()} needs to be called in advance.
      */
     private void updatePreview() {
@@ -513,15 +562,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
     private void setUpCaptureRequestBuilder(CaptureRequest.Builder builder) {
         builder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
     }
-
-    /*
-     * Configures the necessary {@link Matrix} transformation to `mTextureView`.
-     * This method should not to be called until the camera preview size is determined in
-     * openCamera, or until the size of `mTextureView` is fixed.
-     *
-     * @param viewWidth  The width of `mTextureView`
-     * @param viewHeight The height of `mTextureView`
-     */
     private void configureTransform(int viewWidth, int viewHeight) {
         Activity activity = getActivity();
         if (null == mTextureView || null == mPreviewSize || null == activity) {
@@ -558,6 +598,7 @@ public abstract class CameraVideoFragment extends BaseFragment {
          * create video output file
          */
         mCurrentFile = getOutputMediaFile();
+        Log.i(TAG, "setUpMediaRecorder: "+mCurrentFile);
         /*
          * set output file in media recorder
          */
@@ -636,7 +677,6 @@ public abstract class CameraVideoFragment extends BaseFragment {
         } catch (CameraAccessException | IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void startCountDownTimer() {

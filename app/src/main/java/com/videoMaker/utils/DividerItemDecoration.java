@@ -12,7 +12,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     private Drawable mDivider;
     private int mOrientation;
 
-    /**
+    /*
      * Sole constructor. Takes in a {@link Drawable} to be used as the interior
      * divider.
      *
@@ -22,7 +22,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         mDivider = divider;
     }
 
-    /**
+    /*
      * Draws horizontal or vertical dividers onto the parent RecyclerView.
      *
      * @param canvas The {@link Canvas} onto which dividers will be drawn
@@ -38,7 +38,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
-    /**
+    /*
      * Determines the size and location of offsets between items in the parent
      * RecyclerView.
      *
@@ -64,7 +64,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
-    /**
+    /*
      * Adds dividers to a RecyclerView with a LinearLayoutManager or its
      * subclass oriented horizontally.
      *
@@ -91,7 +91,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
         }
     }
 
-    /**
+    /*
      * Adds dividers to a RecyclerView with a LinearLayoutManager or its
      * subclass oriented vertically.
      *

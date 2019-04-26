@@ -35,11 +35,17 @@ public class ShowRecordedVideoActivity extends AppCompatActivity {
         videoData = intent.getStringExtra("videoUri");
         Log.i(TAG, "onCreate intent value" + videoData);
 //         video in  a player
+
         try {
             setVideoInBackground();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+   /*     playVideo.setOnClickListener(v -> {
+            playVideo.setVisibility(View.GONE);
+            mVideo.start();
+        });*/
     }
 
     private void setVideoInBackground() throws IOException {
@@ -57,16 +63,16 @@ public class ShowRecordedVideoActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
-
     @OnClick({R.id.mPlayVideo})
     public void onViewClicked(View view) {
-        switch (view.getId()) {
+        switch (view.getId())
+        {
             case R.id.mPlayVideo:
                 playVideo.setVisibility(View.GONE);
                 mVideo.start();
                 break;
-            default:
-                break;
+                default:
+                    break;
         }
     }
 }
